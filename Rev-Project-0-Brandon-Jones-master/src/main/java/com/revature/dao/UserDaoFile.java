@@ -1,9 +1,7 @@
 package com.revature.dao;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,40 +19,70 @@ import com.revature.beans.User;
 public class UserDaoFile implements UserDao {
 	
 	public static String fileLocation = "src\\output\\users.txt"; 
-    private static File userFile = new File(fileLocation); //SIVA'S VERSION
-	
+     //SIVA'S VERSION
 	private static int id = 0;
-	private static List<User> userList = new ArrayList<User>();
+    List<User> userList = new ArrayList<User>();
 	
-	FileOutputStream userOutFile;
-	ObjectOutputStream userOutput;
-	FileInputStream userInFile;
-	ObjectInputStream userInput;
+
+	
+	public UserDaoFile() {
+	  File userFile = new File(fileLocation);
+     if(!userFile.exists()) {
+    	 try {
+			userFile.createNewFile();
+			
+			try{
+				ObjectOutputStream userOutput = new ObjectOutputStream(new FileOutputStream(fileLocation));
+
+			
+				userOutput.writeObject(userList);
+				userOutput.close();
+				
+			}catch(FileNotFoundException e) {
+				System.out.println("Users file is missing/in wrong location");
+			}catch(IOException e) {
+				System.out.println("An exception was thrown: "+e.getMessage());
+			}
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+     }
+	};
 			
 	
 	public User addUser(User user) {
 		
-		userList.add(user);
+        userList = getAllUsers();
+        userList.add(user);
 		
 		try{
-			userOutFile = new FileOutputStream(fileLocation); //SIVA'S VERSION FileOutputStream(userFile,true)
-			userOutput = new ObjectOutputStream(userOutFile);
+			ObjectOutputStream userOutput = new ObjectOutputStream(new FileOutputStream(fileLocation));
+//			userOutFile = new FileOutputStream(fileLocation); //SIVA'S VERSION FileOutputStream(userFile,true)
+//			userOutput = new ObjectOutputStream(userOutFile);
 			
-			userOutput.writeObject(user);
+			userOutput.writeObject(userList);
 			userOutput.close();
-			System.out.println("Your account has been successfully created 2");
+			
 		}catch(FileNotFoundException e) {
 			System.out.println("Users file is missing/in wrong location");
 		}catch(IOException e) {
 			System.out.println("An exception was thrown: "+e.getMessage());
 		}
+		
+		
+		
 		return user;
 	}
 
 	public User getUser(Integer userId) {
+		
+		userList = getAllUsers();
 		for(User u : userList) {
-			if(u.getId() == userId) {
-				return u;}
+			if(u.getId().equals(userId)) 
+				return u;
 				
 			}
 			return null;
@@ -66,27 +94,24 @@ public class UserDaoFile implements UserDao {
 		User requestedUser = null;
 		
 		for(User u : userList) {
-			if(u.getUsername().equals(username) && u.getPassword().equals(pass)) {
+			if(u.getUsername().equals(username) && u.getPassword().equals(pass)) 
 				
 				requestedUser = u;
 				
 				return requestedUser;
 				
-			}
+			
 		}
 		
 		return null;
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	public List<User> getAllUsers() {
-		try {
-			userInFile = new FileInputStream(fileLocation);
-			userInput = new ObjectInputStream(userInFile);
-			
-			while (userInput.readObject() != null)
-			
-			userList.add((User) userInput.readObject());
+		try 
+			(ObjectInputStream userInput = new ObjectInputStream(new FileInputStream(fileLocation))){
+			userList = (ArrayList<User>) userInput.readObject();
 			userInput.close();
 			
 		}catch(FileNotFoundException e) {

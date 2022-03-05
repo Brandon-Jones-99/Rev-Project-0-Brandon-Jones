@@ -69,7 +69,9 @@ public class FileIntegrationTests extends PointWatcher {
 	
 	@After
 	public void tearDown() throws IOException {
+		Files.delete(Paths.get(UserDaoFile.fileLocation));
 		Files.delete(Paths.get(AccountDaoFile.fileLocation));
+		
 	}
 	
 	@Test
