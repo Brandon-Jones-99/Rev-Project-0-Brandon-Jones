@@ -27,22 +27,23 @@ public class UserDaoDB implements UserDao {
 	}
 
 	public User addUser(User user) {
-		String query = "insert into p0_user (firstName, lastName, username, password, user_type) values (?,?,?,?,?)";
+		String query = "insert into p0_user (first_name, last_name, username, password, user_type) values (?,?,?,?,?)";
 		try {
 			pstmt = conn.prepareStatement(query);
 			pstmt.setString(1, user.getFirstName());
 			pstmt.setString(2, user.getLastName());
 			pstmt.setString(3, user.getUsername());
 			pstmt.setString(4, user.getPassword());
-			pstmt.setObject(5, UserType.CUSTOMER);
+			if (user.getUserType().equals(User.UserType.CUSTOMER)){
+				pstmt.setString(5, "CUSTOMER");
+			} else {
+				pstmt.setString(5, "EMPLOYEE");
+			}
 			pstmt.executeUpdate();
-			stmt.executeUpdate(query);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
 		
 		return user;
 	}
@@ -55,7 +56,7 @@ public class UserDaoDB implements UserDao {
 		
 		stmt=conn.createStatement();
 		rs = stmt.executeQuery(query);
-		if (rs.next())
+		if (rs.next()) {
 			
 		
 			user.setId(rs.getInt("id"));
@@ -63,12 +64,19 @@ public class UserDaoDB implements UserDao {
 			user.setLastName(rs.getString("last_name"));
 			user.setUsername(rs.getString("username"));
 			user.setPassword(rs.getString("password"));
-			user.setUserType((UserType)rs.getObject("user_type"));
+			if (rs.getString("user_type").equals("CUSTOMER")){
+				user.setUserType(User.UserType.CUSTOMER);
+			} else {
+				user.setUserType(User.UserType.EMPLOYEE);
+			}
+			
+			return user;
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}
+			}
 		
-		return user;
+		return null;
 	}
 
 	public User getUser(String username, String pass) {
@@ -79,8 +87,6 @@ public class UserDaoDB implements UserDao {
 		try	{
 		
 		stmt=conn.createStatement();
-//		pstmt.setString(1, username);
-//		pstmt.setString(2, pass);
 		rs = stmt.executeQuery(query);
 		if (rs.next())	
 		{
@@ -94,14 +100,12 @@ public class UserDaoDB implements UserDao {
 			} else {
 				user.setUserType(User.UserType.EMPLOYEE);
 			}
-//			user.setUserType((UserType)rs.getObject("user_type"));
-		}
+			return user;
+			} 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
-		return user;
-	
+		return null;
 	}
 
 	public List<User> getAllUsers() {

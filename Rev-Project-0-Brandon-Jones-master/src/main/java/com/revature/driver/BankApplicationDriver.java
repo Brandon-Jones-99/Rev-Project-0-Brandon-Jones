@@ -2,32 +2,49 @@ package com.revature.driver;
 
 import java.util.Scanner;
 
+import com.revature.beans.Account;
+import com.revature.beans.Account.AccountType;
 import com.revature.beans.User;
 import com.revature.beans.User.UserType;
 import com.revature.dao.AccountDao;
 import com.revature.dao.AccountDaoDB;
 import com.revature.dao.UserDao;
 import com.revature.dao.UserDaoDB;
+import com.revature.exceptions.OverdraftException;
+import com.revature.services.AccountService;
 import com.revature.services.UserService;
+import com.revature.utils.SessionCache;
 
 /**
  * This is the entry point to the application
  */
 public class BankApplicationDriver {
 	
-	public static void register(User user) {
-		
-	}
 	
+	static boolean welcome = false;
 	static boolean logged = false;
 	static boolean employeeLogged = false;
+	public UserDao userDao = new UserDaoDB();
+	public AccountDao accountDao = new AccountDaoDB();
+	public UserService userService = new UserService(userDao, accountDao);
+	public AccountService accountService = new AccountService(accountDao);
 
 	public static void main(String[] args) {
+		
+	  BankApplicationDriver newDriver = new BankApplicationDriver();
+		
+		newDriver.Welcome();
+		
+		
+		
+		
+	}
 		//Welcome Screen options
 		
-		UserDao userDao = new UserDaoDB();
-		AccountDao accountDao = new AccountDaoDB();
-		UserService userService = new UserService(userDao, accountDao);
+		public void Welcome() {
+			
+		
+		welcome = true;
 		int choice = 0;
 		
 		String username = null;
@@ -69,7 +86,7 @@ public class BankApplicationDriver {
 		User newUser = new User(username, password, firstName, lastName, UserType.CUSTOMER);
 		userService.register(newUser);
 		
-		System.out.println("\nYour account has been successfully created.\nYou may start up the program again to login... Goodbye!");
+		System.out.println("\nYour account has been successfully created.\nYou may now login using your new credentials!");
 			break;
 		
 		case 2: 
@@ -78,8 +95,10 @@ public class BankApplicationDriver {
 		username = welcomeScanner.next();
 		System.out.println("\nPlease enter your 'password'");
 		password = welcomeScanner.next();
-		if (userService.login(username, password) != null) {
+		SessionCache.setCurrentUser(userService.login(username, password));
+		if (SessionCache.getCurrentUser().get() != null) {
 			System.out.println("Login is Successful");
+		
 			loggedIn();
 		} else {
 			System.out.println("Sorry, your login has failed. Please try again");
@@ -109,26 +128,25 @@ public class BankApplicationDriver {
 		case 4:
 			System.out.println("Thanks for using the bank, have a nice day");
 			System.out.println("---Application closed---");
-			System.exit(0);
+			welcome = false;
 			break;
 
 		default:
 			System.out.println("INVALID!: Please enter a number between [1-4]");
 			break;
-		}
+				}
 			
-				
-		
-			
-			
-		
-		}
+			}
 		}
 		welcomeScanner.close();
-	}
-	public static void loggedIn() {
+	
+		}
+			
+		
+	public void loggedIn() {
 		
 		Scanner loggedInScanner = new Scanner(System.in);
+		
 		int loggedInChoice = 0;
 		logged = true;
 		while (loggedInChoice < 6) {
@@ -154,12 +172,24 @@ public class BankApplicationDriver {
 			System.out.println(" Select 'C' for Checking or 'S' for Savings");
 			String typeOfAccount = loggedInScanner.next();
 			if (typeOfAccount.equals("C")) {
-				System.out.println("you chose Checking Account");
+				System.out.println("you chose Checking Account\n");
+				System.out.println("Your starting balance is going to be $25.00, is that OK?");
+				String startingBalance = loggedInScanner.next();
+				if (startingBalance == "YES") {
+					System.out.println("\nOK great, your starting balance is now $25.00");
+			
 				
-				// ADD SOME LOGIC
+				accountService.createNewAccount(SessionCache.getCurrentUser().get());
+				
+				System.out.println("\nYou've successfully created a Checking Account!\n");
+				
+				} else {
+					System.out.println("INVALID! You must have a $25.00 starting balance!");
+				}
+				
 			} else if (typeOfAccount.equals("S")) {
 				System.out.println("you chose Savings Account");
-				// ADD SOME LOGIC
+				// This functionality may be added later
 		     
 			} else System.out.println("INVALID! You have to choose 'C' or 'S'... Please try again");
 				
@@ -169,51 +199,52 @@ public class BankApplicationDriver {
 		case 2:
 			System.out.println("You've selected to View your Account Balance\n");
 			System.out.println("Which Account Balance would you like to view?\n");
-			System.out.println(" Select 'C' for Checking or 'S' for Savings");
-			String typeOfAccount2 = loggedInScanner.next();
-			if (typeOfAccount2.equals("C")) {
-				System.out.println("you chose Checking Account");
+			System.out.println(" Select your System Account Number");
+			int typeOfAccount2 = loggedInScanner.nextInt();
+			//BROKEN
+			if (accountDao.getAccount(typeOfAccount2).getId() != null) {
+			
+				System.out.println("OK, we got your account... your balance is "+ accountDao.getAccount(typeOfAccount2).getBalance());
 				
-				// ADD SOME LOGIC
-			} else if (typeOfAccount2.equals("S")) {
-				System.out.println("you chose Savings Account");
-				// ADD SOME LOGIC
-		     
-			} else System.out.println("INVALID! You have to choose 'C' or 'S'... Please try again");
+				
+			}  else  {System.out.println("INVALID! We couldn't locate your Account Number... Please try again"); 
+			}
 			
 			break;
 			
 		case 3:
 			System.out.println("You've selected to Make a Deposit\n");
 			System.out.println("Which account would you like to deposit into?\n");
-			System.out.println(" Select 'C' for Checking or 'S' for Savings");
-			String typeOfAccount3 = loggedInScanner.next();
-			if (typeOfAccount3.equals("C")) {
-				System.out.println("you chose Checking Account");
+			System.out.println(" Select your System Account Number");
+			int typeOfAccount3 = loggedInScanner.nextInt();
+			System.out.println("How much would you like to deposit?");
+			double depositAmount = loggedInScanner.nextDouble();
+			try { accountService.deposit(accountDao.getAccount(typeOfAccount3), depositAmount);
+				System.out.println("OK, you've deposited " + depositAmount); }
+			catch (UnsupportedOperationException e) { 
+				System.out.println("INVALID! We couldn't make a Deposit... Please try again");
+				e.printStackTrace(); 
 				
-				// ADD SOME LOGIC
-			} else if (typeOfAccount3.equals("S")) {
-				System.out.println("you chose Savings Account");
-				// ADD SOME LOGIC
-		     
-			} else System.out.println("INVALID! You have to choose 'C' or 'S'... Please try again");
-			
+			}
+
 			break;
 			
 		case 4:
 			System.out.println("You've selected to Make a Withdrawal\n");
 			System.out.println("Which account would you like to withdraw from?\n");
-			System.out.println(" Select 'C' for Checking or 'S' for Savings");
-			String typeOfAccount4 = loggedInScanner.next();
-			if (typeOfAccount4.equals("C")) {
-				System.out.println("you chose Checking Account");
+			System.out.println(" Select your System Account Number");
+			int typeOfAccount4 = loggedInScanner.nextInt();
+			System.out.println("How much would you like to withdraw");
+			double depositAmount2 = loggedInScanner.nextDouble();
+			try { accountService.withdraw(accountDao.getAccount(typeOfAccount4), depositAmount2);
+				System.out.println("OK you've withdrawn " + depositAmount2);
+			} catch (OverdraftException e) {
+				System.out.println("INVALID! We couldn't make a Withdrawal... Please try again");
+			}
+				
 				
 				// ADD SOME LOGIC
-			} else if (typeOfAccount4.equals("S")) {
-				System.out.println("you chose Savings Account");
-				// ADD SOME LOGIC
-		     
-			} else System.out.println("INVALID! You have to choose 'C' or 'S'... Please try again");
+			
 			
 			break;
 			
@@ -250,7 +281,7 @@ public class BankApplicationDriver {
 		loggedInScanner.close();
 	};
 	
-	public static void employeeLoggedIn() {
+	public void employeeLoggedIn() {
 		
 		Scanner employeeScanner = new Scanner(System.in);
 		int employeeChoice = 0;
@@ -295,21 +326,6 @@ public class BankApplicationDriver {
 		employeeScanner.close();
 		
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	

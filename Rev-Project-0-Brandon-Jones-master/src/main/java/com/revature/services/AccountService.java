@@ -1,9 +1,15 @@
 package com.revature.services;
 
+import java.nio.channels.UnsupportedAddressTypeException;
+
 import com.revature.beans.Account;
 import com.revature.beans.User;
 import com.revature.dao.AccountDao;
 import com.revature.exceptions.OverdraftException;
+import com.revature.exceptions.UnauthorizedException;
+import com.revature.utils.SessionCache;
+
+
 
 /**
  * This class should contain the business logic for performing operations on Accounts
@@ -24,6 +30,22 @@ public class AccountService {
 	 */
 	public void withdraw(Account a, Double amount) {
 		
+		
+		
+		a = actDao.getAccount(a.getId());
+		Double balance = a.getBalance();
+		balance -= amount;
+		if (amount > balance) {
+			throw new OverdraftException();
+		} else if (amount < 0) {
+			throw new UnsupportedOperationException();
+		}
+		
+		a.setBalance(balance);
+		actDao.updateAccount(a);
+		
+		
+		
 	}
 	
 	/**
@@ -31,9 +53,13 @@ public class AccountService {
 	 * @throws UnsupportedOperationException if amount is negative
 	 */
 	public void deposit(Account a, Double amount) {
-		if (!a.isApproved()) {
+		
+		
+		if (amount < 0 || !a.isApproved()) {
 			throw new UnsupportedOperationException();
 		}
+		a.setBalance(a.getBalance()+amount);
+		actDao.updateAccount(a);
 	}
 	
 	/**
@@ -47,6 +73,14 @@ public class AccountService {
 	 */
 	public void transfer(Account fromAct, Account toAct, double amount) {
 		
+	    if (!fromAct.isApproved() || !(toAct.isApproved())) {
+	    	throw new UnsupportedOperationException();
+	    } else if ((fromAct.getBalance() < amount) || amount < 0)  {
+	    	throw new UnsupportedOperationException();
+	    	
+	    }
+	    fromAct.setBalance(fromAct.getBalance() - amount);
+	    toAct.setBalance(toAct.getBalance() + amount); 
 	}
 	
 	/**
@@ -54,7 +88,17 @@ public class AccountService {
 	 * @return the Account object that was created
 	 */
 	public Account createNewAccount(User u) {
-		return null;
+		Account newAccount = new Account();
+		
+		newAccount.setOwnerId(u.getId());
+		newAccount.setBalance(STARTING_BALANCE);
+		newAccount.setType(Account.AccountType.CHECKING);
+		newAccount.setApproved(true);
+		
+		actDao.addAccount(newAccount);
+	
+		
+		return newAccount;
 	}
 	
 	/**
@@ -65,6 +109,11 @@ public class AccountService {
 	 * @return true if account is approved, or false if unapproved
 	 */
 	public boolean approveOrRejectAccount(Account a, boolean approval) {
-		return false;
+		if (SessionCache.getCurrentUser().get().getUserType().equals(User.UserType.CUSTOMER)){
+			throw new UnauthorizedException();
+		} else { 
+		a.setApproved(approval);
+		}
+		return approval;
 	}
 }

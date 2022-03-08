@@ -48,8 +48,10 @@ public class UserService {
 		User user = new User();
 		user = userDao.getUser(newUser.getUsername(), newUser.getPassword());
 		if (user != null) {
+			System.out.println("That username already exists!");
 			throw new UsernameAlreadyExistsException();
 		} else {
+			
 			userDao.addUser(newUser);
 		}
 		
