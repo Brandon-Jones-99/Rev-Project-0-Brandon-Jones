@@ -81,6 +81,8 @@ public class AccountService {
 	    }
 	    fromAct.setBalance(fromAct.getBalance() - amount);
 	    toAct.setBalance(toAct.getBalance() + amount); 
+	    actDao.updateAccount(fromAct);
+	    actDao.updateAccount(toAct);
 	}
 	
 	/**
@@ -113,6 +115,7 @@ public class AccountService {
 			throw new UnauthorizedException();
 		} else { 
 		a.setApproved(approval);
+		actDao.updateAccount(a);
 		}
 		return approval;
 	}

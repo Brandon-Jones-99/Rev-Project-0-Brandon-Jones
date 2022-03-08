@@ -90,7 +90,12 @@ public class AccountDaoDB implements AccountDao {
 				a.setId(rs.getInt("id"));
 				a.setOwnerId(rs.getInt("owner_id"));
 				a.setBalance(rs.getDouble("balance"));
-				a.setType((AccountType) rs.getObject("account_type"));
+				//a.setType((AccountType) rs.getObject("account_type"));
+				if(rs.getString("account_type").equals("CHECKING")) {
+					a.setType(Account.AccountType.CHECKING);
+				} else {
+					a.setType(Account.AccountType.SAVINGS);
+				}
 				a.setApproved(rs.getBoolean("approved"));
 				accountList.add(a);
 			}
@@ -111,10 +116,14 @@ public class AccountDaoDB implements AccountDao {
 			rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				Account a = new Account();
-				a.setId(rs.getInt("id"));
+				a.setId(rs.getInt("account_id"));
 				a.setOwnerId(rs.getInt("owner_id"));
 				a.setBalance(rs.getDouble("balance"));
-				a.setType((AccountType) rs.getObject("account_type"));
+				if(rs.getString("account_type").equals("CHECKING")) {
+					a.setType(Account.AccountType.CHECKING);
+				} else {
+					a.setType(Account.AccountType.SAVINGS);
+				}
 				a.setApproved(rs.getBoolean("approved"));
 				accountList.add(a);
 			}

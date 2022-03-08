@@ -29,7 +29,7 @@ public class TransactionDaoDB implements TransactionDao {
 	public List<Transaction> getAllTransactions() {
 		// TODO Auto-generated method stub
 		List<Transaction> transactionList = new ArrayList<Transaction>();
-		String query = "select * from transaction";
+		String query = "select * from transactions";
 		try {
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);

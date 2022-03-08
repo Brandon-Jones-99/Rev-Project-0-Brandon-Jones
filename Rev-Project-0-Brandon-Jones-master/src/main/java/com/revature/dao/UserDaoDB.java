@@ -121,7 +121,11 @@ public class UserDaoDB implements UserDao {
 				u.setFirstName(rs.getString("first_name"));
 				u.setLastName(rs.getString("last_name"));
 				u.setUsername(rs.getString("username"));
-				u.setUserType((UserType)rs.getObject("user_type"));
+				if (rs.getString("user_type").equals("CUSTOMER")){
+					u.setUserType(User.UserType.CUSTOMER);
+				} else {
+					u.setUserType(User.UserType.EMPLOYEE);
+				}
 				userList.add(u);
 			}
 		} catch (Exception e) {
@@ -141,7 +145,11 @@ public class UserDaoDB implements UserDao {
 			pstmt.setString(2, u.getLastName());
 			pstmt.setString(3, u.getUsername());
 			pstmt.setString(4, u.getPassword());
-			pstmt.setObject(5, UserType.CUSTOMER);
+			if (rs.getString("user_type").equals("CUSTOMER")){
+				u.setUserType(User.UserType.CUSTOMER);
+			} else {
+				u.setUserType(User.UserType.EMPLOYEE);
+			}
 			pstmt.setInt(6, u.getId());
 			pstmt.executeUpdate();
 		
