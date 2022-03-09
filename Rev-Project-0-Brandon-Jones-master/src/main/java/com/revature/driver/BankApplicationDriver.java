@@ -204,7 +204,9 @@ public class BankApplicationDriver {
 		case 2:
 			System.out.println("You've selected to View your Account Balance\n");
 			System.out.println("Here are your accounts\n");
+			System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------");
 			System.out.println(accountDao.getAccountsByUser(SessionCache.getCurrentUser().get()));
+			System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 			System.out.println("Which Account Balance would you like to view?\n");
 			System.out.println("Select your System Account Number (the field labeled id='xxx')");
 			int typeOfAccount2 = loggedInScanner.nextInt();
@@ -223,7 +225,9 @@ public class BankApplicationDriver {
 		case 3:
 			System.out.println("You've selected to Make a Deposit\n");
 			System.out.println("Here are your accounts\n");
+			System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------");
 			System.out.println(accountDao.getAccountsByUser(SessionCache.getCurrentUser().get()));
+			System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 			System.out.println("Which account would you like to deposit into?\n");
 			System.out.println("Select your System Account Number (the field labeled id='xxx')");
 			int typeOfAccount3 = loggedInScanner.nextInt();
@@ -244,7 +248,9 @@ public class BankApplicationDriver {
 		case 4:
 			System.out.println("You've selected to Make a Withdrawal\n");
 			System.out.println("Here are your accounts\n");
+			System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------");
 			System.out.println(accountDao.getAccountsByUser(SessionCache.getCurrentUser().get()));
+			System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 			System.out.println("Which account would you like to withdraw from?\n");
 			System.out.println("Select your System Account Number (the field labeled id='xxx')");
 			int typeOfAccount4 = loggedInScanner.nextInt();
